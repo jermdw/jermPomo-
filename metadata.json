@@ -1,0 +1,5 @@
+{
+  "name": "Pomodoro App",
+  "description": "A minimal, analytics-driven Pomodoro timer to help you focus.",
+  "requestFramePermissions": []
+}
