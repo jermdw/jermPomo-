@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Play, Pause, Square, SkipForward } from 'lucide-react';
 import { TimerState, SessionType } from '../types';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface TimerProps {
   state: TimerState;
@@ -51,8 +51,8 @@ export function Timer({
   const label = isFocus ? 'Focus Session' : type === 'shortBreak' ? 'Short Break' : 'Long Break';
 
   return (
-    <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto p-8 bg-white rounded-3xl shadow-sm border border-gray-100">
-      <div className="mb-6 text-sm font-medium tracking-widest text-gray-400 uppercase">
+    <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto p-8 bg-white dark:bg-zinc-900 rounded-3xl shadow-sm border border-gray-100 dark:border-zinc-800 transition-colors">
+      <div className="mb-6 text-sm font-medium tracking-widest text-gray-400 dark:text-zinc-500 uppercase">
         {label}
       </div>
 
@@ -62,10 +62,10 @@ export function Timer({
           placeholder="What are you focusing on?"
           value={intent}
           onChange={(e) => setIntent(e.target.value)}
-          className="w-full text-center text-xl font-medium text-gray-800 bg-transparent border-b-2 border-gray-200 focus:border-gray-800 outline-none pb-2 mb-8 transition-colors placeholder:text-gray-300"
+          className="w-full text-center text-xl font-medium text-gray-800 dark:text-zinc-100 bg-transparent border-b-2 border-gray-200 dark:border-zinc-800 focus:border-gray-800 dark:focus:border-zinc-100 outline-none pb-2 mb-8 transition-colors placeholder:text-gray-300 dark:placeholder:text-zinc-700"
         />
       ) : (
-        <div className="w-full text-center text-xl font-medium text-gray-800 pb-2 mb-8 min-h-[40px]">
+        <div className="w-full text-center text-xl font-medium text-gray-800 dark:text-zinc-100 pb-2 mb-8 min-h-[40px]">
           {isFocus ? intent || 'Deep Work' : 'Take a breather'}
         </div>
       )}
@@ -78,7 +78,8 @@ export function Timer({
             cy="50"
             r="48"
             fill="none"
-            stroke="#f3f4f6"
+            stroke="currentColor"
+            className="text-gray-100 dark:text-zinc-800"
             strokeWidth="4"
           />
           <motion.circle
@@ -86,7 +87,8 @@ export function Timer({
             cy="50"
             r="48"
             fill="none"
-            stroke={isFocus ? '#111827' : '#10b981'}
+            stroke={isFocus ? (state === 'running' ? (document.documentElement.classList.contains('dark') ? '#f4f4f5' : '#111827') : '#111827') : '#10b981'}
+            className={isFocus ? 'text-gray-900 dark:text-zinc-100' : 'text-emerald-500'}
             strokeWidth="4"
             strokeLinecap="round"
             initial={{ strokeDasharray: '301.59', strokeDashoffset: '301.59' }}
@@ -95,16 +97,40 @@ export function Timer({
           />
         </svg>
 
-        <div className="timer-display text-6xl font-light text-gray-900 z-10">
+        <motion.div 
+          className="timer-display text-6xl font-light text-gray-900 dark:text-zinc-100 z-10"
+          animate={state === 'running' && timeLeft <= 120 && timeLeft > 0 ? {
+            scale: [1, 1.05, 1],
+            opacity: [1, 0.8, 1]
+          } : { scale: 1, opacity: 1 }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
           {formatTime(timeLeft)}
-        </div>
+        </motion.div>
       </div>
+
+      {/* Screen Flash Effect */}
+      <AnimatePresence>
+        {state === 'running' && timeLeft === totalDuration && (
+          <motion.div
+            initial={{ opacity: 0.5 }}
+            animate={{ opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 bg-white dark:bg-zinc-100 pointer-events-none z-[100]"
+          />
+        )}
+      </AnimatePresence>
 
       <div className="flex items-center gap-6">
         {state === 'running' ? (
           <button
             onClick={pause}
-            className="w-16 h-16 flex items-center justify-center rounded-full bg-gray-100 text-gray-900 hover:bg-gray-200 transition-colors"
+            className="w-16 h-16 flex items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
           >
             <Pause size={24} fill="currentColor" />
           </button>
@@ -112,7 +138,7 @@ export function Timer({
           <button
             onClick={start}
             className={`w-16 h-16 flex items-center justify-center rounded-full text-white transition-colors shadow-md ${
-              isFocus ? 'bg-gray-900 hover:bg-gray-800' : 'bg-emerald-500 hover:bg-emerald-600'
+              isFocus ? 'bg-gray-900 dark:bg-zinc-100 dark:text-zinc-900 hover:bg-gray-800 dark:hover:bg-white' : 'bg-emerald-500 hover:bg-emerald-600'
             }`}
           >
             <Play size={24} fill="currentColor" className="ml-1" />
@@ -122,7 +148,7 @@ export function Timer({
         {(state === 'running' || state === 'paused') && (
           <button
             onClick={stop}
-            className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900 transition-colors"
+            className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-700 hover:text-gray-900 dark:hover:text-zinc-100 transition-colors"
           >
             <Square size={18} fill="currentColor" />
           </button>
@@ -131,7 +157,7 @@ export function Timer({
         {state === 'running' && !isFocus && (
           <button
             onClick={skip}
-            className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900 transition-colors"
+            className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-700 hover:text-gray-900 dark:hover:text-zinc-100 transition-colors"
           >
             <SkipForward size={18} />
           </button>

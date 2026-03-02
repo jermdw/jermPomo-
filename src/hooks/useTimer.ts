@@ -78,31 +78,31 @@ export function useTimer(settings: Settings, onSessionComplete: (session: FocusS
     }
   }, [type, intent, settings, sessionsCompleted, onSessionComplete]);
 
-  const start = () => {
+  const start = useCallback(() => {
     if (state === 'idle' || state === 'paused') {
       endTimeRef.current = Date.now() + timeLeft * 1000;
       setState('running');
     }
-  };
+  }, [state, timeLeft]);
 
-  const pause = () => {
+  const pause = useCallback(() => {
     if (state === 'running') {
       setState('paused');
       endTimeRef.current = null;
     }
-  };
+  }, [state]);
 
-  const stop = () => {
+  const stop = useCallback(() => {
     setState('idle');
     endTimeRef.current = null;
     if (type === 'focus') setTimeLeft(settings.focusDuration * 60);
     else if (type === 'shortBreak') setTimeLeft(settings.shortBreakDuration * 60);
     else if (type === 'longBreak') setTimeLeft(settings.longBreakDuration * 60);
-  };
+  }, [type, settings]);
 
-  const skip = () => {
+  const skip = useCallback(() => {
     handleComplete();
-  };
+  }, [handleComplete]);
 
   return {
     state,
